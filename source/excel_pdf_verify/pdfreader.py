@@ -41,11 +41,16 @@ newFloder_path = os.path.join(current_dir, newFloder_path)
 
 df = pd.read_excel(excel_file, usecols=["收录编号","出生地","护照号", "出发口岸","英文拼音","性别","出生日期","有效期"])
 
+def ensure_string(input_var):
+    if not isinstance(input_var, str):
+        input_var = str(input_var)
+    return input_var
+
 def checkNull(values):
   value = "未知"
   if len(values) > 0:
     value = values[0]
-  return value
+  return ensure_string(value)
   
 def getDir(passport_number):
   # 读取Excel文件
@@ -70,11 +75,11 @@ def getDir(passport_number):
   if sex == "M":
     sex = "MALE"
   birth_place = chinese_to_pinyin(checkNull(filtered_data["出生地"].values))
-  date_str = checkNull(filtered_data["出生日期"].values).astype(str)
+  date_str = checkNull(filtered_data["出生日期"].values)
   brith_date = format_date(date_str.split("T")[0])
 
 
-  voidDate = checkNull(filtered_data["有效期"].values).astype(str)
+  voidDate = checkNull(filtered_data["有效期"].values)
   voidDate = format_date(voidDate.split("T")[0])
   
  
@@ -243,7 +248,7 @@ def process_pdf(file_path):
           print("无出发地" + excel_info["port"] + "  名字:" + info_dict["name"])
           print("-------------------------")
 
-      if not excel_info["port"] == "未知" and not (excel_info["name"] == info_dict["name"] and excel_info["sex"] == info_dict["sex"] and excel_info["birthday"] == info_dict["birthday"] and excel_info["place"] == info_dict["place"] and excel_info["ExpiryDate"] == info_dict["ExpiryDate"] and excel_info["name"] == info_dict["name"]):
+      if not excel_info["port"] == "未知" and not (excel_info["name"] == info_dict["name"] and excel_info["sex"] == info_dict["sex"] and excel_info["birthday"] == info_dict["birthday"] and   compair_place(excel_info["place"],info_dict["place"]) and excel_info["ExpiryDate"] == info_dict["ExpiryDate"] and excel_info["name"] == info_dict["name"]):
         print(excel_info["number"])
         print("出发口岸:" + excel_info["port"] + "  名字:" + excel_info["name"])
 
@@ -269,6 +274,10 @@ def process_pdf_folder(folder_path):
             if file_name.endswith('.pdf'):  # 确保是PDF文件
                 file_path = os.path.join(root, file_name)
                 process_pdf(file_path)
+
+def compair_place(str1, str2):
+   str2_temp = str2.replace(" ", "")
+   return  str1 == str2 or str1 == str2_temp
 
 # 调用函数并传入文件夹路径
 process_pdf_folder(folder_path)
